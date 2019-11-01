@@ -5,7 +5,8 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <string.h>
-
+#include <pthread.h>
+#include <time.h>
 
 struct Room{
 	char name[8];
@@ -157,9 +158,16 @@ struct Game* read_files(char *directory){
    }
    closedir(d);	
    free(buffer);
+   g->map.num_visited= 1; 
    return g;
 }
 
+/*******************************************************************
+*Description: Determines if user input is good/bad/time.
+*	Returns -2 for time, -1 for failure. otherwise
+*	an inde is returned of the file inside g->graph
+*
+********************************************************************/
 int _get_user_input(struct Game *g){
 	int check = 0;
 	int index = g->map.current;
@@ -167,6 +175,13 @@ int _get_user_input(struct Game *g){
 
    	scanf("%s", name);
 	printf("\n");
+
+	//Check for time
+	if(strcmp(name, "time") == 0){
+		return -2;
+	}
+
+
 	int length = 0;
 	int i = 0;
 	for(i; i < g->graph[index].num_connections; i++){
@@ -193,13 +208,33 @@ int _get_user_input(struct Game *g){
 
 }
 
+void* get_time(){
+	FILE *f;
+        time_t t;
+	struct tm *info;
+	char arg[100] = {'\0'};
+
+	time(&t);
+	info = localtime(&t);
+        
+
+	//Format time string and write to file
+	strftime(arg, 100, "%I:%M%p, %A, %B, %d, %Y", info);
+	f = fopen("./currentTime.txt", "w+");
+	fputs(arg, f);
+	
+	printf("%s\n", arg);
+	printf("\n");
+	fclose(f);
+}
 
 int ui(struct Game *g){
+   int time = 0;
    int index = g->map.current;	//Make life easier
    char tmp[9];
    char *buffer;
    int boolboi = 0;
-   int new_room;		//Will recieve index of room traversal
+   signed int new_room;		//Will recieve index of room traversal
 
    //Fix up strings
    g->graph[index].connections[0][strcspn(g->graph[index].connections[0], "\n")] = 0;
@@ -217,15 +252,19 @@ int ui(struct Game *g){
    printf(".\n");
    printf("WHERE TO? >");
    do{
-
+	
+      //Get index for next room
       new_room = _get_user_input(g);
-
-      if(new_room != -1) {
+      
+      if(new_room > -1) {
 	 //Correct Input
 	 //break from this loop
-         boolboi = 1;
-	 printf("\n");
+	 boolboi = 1;
 
+      }else if(new_room == -2){
+	 //Call thread to get time
+	 time = 1;
+	 break; 
       }else{
       	//Bad input try again
         printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
@@ -234,7 +273,12 @@ int ui(struct Game *g){
       }
 
    }while(boolboi != 1);
-   
+  
+   if(time == 1){
+   	time = 0;
+	return -1;
+   }
+
    //Set new current and update map with the new room
    //Need to set current to the graph index not connections
    g->map.current = new_room;
@@ -270,8 +314,19 @@ void show_path(struct Game *g){
    }
 }
 
-int main(){
+void disconnect_graph(struct Game *g){
+   int i = 0;	
+   for(i; i < 7; i++){
+      
+      int j = 0;	
+      for(j; j < g->graph[i].num_connections; j++){
+	 free(g->graph[i].connections[j]);
+      }
+   }
+   free(g);
+}
 
+int main(){
    FILE *f;
    struct stat tmp;
    char directory[200];
@@ -285,9 +340,6 @@ int main(){
    //Read File and store rooms
    g = read_files(directory);
 
-   //Housekeeping
-   g->map.num_visited = 1;
-
    //Get start room to load. All other rooms will be placed @ runtime
    get_first_room(g);
 
@@ -295,10 +347,20 @@ int main(){
    //Call ui untill in end room
    do{
       logic = ui(g);
-   }while(logic == 0);
+
+      if(logic == -1){
+      	//Thread for time
+	pthread_t thread;
+	pthread_create(&thread, NULL, get_time, NULL);
+	pthread_join(thread,NULL);
+      }
+
+   }while(logic <= 0);
 
    //Display path taken
    show_path(g);
   
    //Deallocate memory for all connections
+   disconnect_graph(g);
+
 }
