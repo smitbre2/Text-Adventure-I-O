@@ -1,3 +1,9 @@
+/********************************************************************
+*AUthor: Brenden Smith
+*Description: Will create a local directory appended by the process
+	ID. The directory will get 7 room files that are randomly
+	processed.
+*********************************************************************/
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

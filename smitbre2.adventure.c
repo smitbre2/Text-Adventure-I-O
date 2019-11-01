@@ -1,3 +1,11 @@
+/*************************************************************************
+*Author: Brenden Smith
+*Description: Reads in room data that is propogated by the building program.
+*	The user will be placed in the START_ROOM and will work towards the
+*	END_ROOM. Threading was utilized to access time and date while playing
+ * *************************************************************************/
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
