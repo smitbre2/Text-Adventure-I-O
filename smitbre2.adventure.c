@@ -370,5 +370,5 @@ int main(){
   
    //Deallocate memory for all connections
    disconnect_graph(g);
-
+   return 0;
 }
