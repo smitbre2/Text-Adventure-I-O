@@ -205,7 +205,15 @@ void write_to_file(struct Graph g){
    }
 }
 
-
+void free_connections(struct Graph *m){
+   int i = 0;	
+   for(i; i < 7; i++){
+	int j = 0;
+	for(j; j < m->rooms[i].num_connections; j++){
+		free(m->rooms[i].connections[j]);
+	}	
+   }
+}
 
 int main() {
    const int SIZE = 7;
@@ -219,4 +227,5 @@ int main() {
    add_random_connection(&map);
 
    write_to_file(map);
+   free_connections(&map);
 }
