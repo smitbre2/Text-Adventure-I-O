@@ -22,7 +22,10 @@ struct Graph {
 };
 
 
-
+/****************************************************************************
+ *Description: Picks randomly from a list of hardcoded names to place in
+ *	the struct g. All rooms are assigned randomly with one start and end
+ * ************************************************************************/
 void generate_rooms(struct Graph *g){
    //Hardcoded names for rooms
    int tuple_time[11] = {};	//Will flag already used names in assignment
@@ -71,9 +74,9 @@ void generate_rooms(struct Graph *g){
 }
 
 
-//Generate rooms and then add connections between to fit constraints
-
-//Returns true if all rooms have 3 -> 6 connections, else false
+/************************************************************************
+ * Returns true if all rooms have 3 -> 6 connections, else false
+ *********************************************************************/
 int is_graph_full(struct Graph *g){
    //cycle through vertexes
    //If connections are met set continue until end and return true	
@@ -86,6 +89,7 @@ int is_graph_full(struct Graph *g){
    }
    return 1;
 }
+
 
 struct Room* get_random_room(struct Graph* g){
 	//Return a random room
@@ -112,6 +116,9 @@ int connection_already_exists(struct Room x, struct Room y) {
 	return 0;
 }
 
+/**************************************************************************
+ *Will connect both Room x and y. Will update their connections count
+ * ***********************************************************************/
 void connect_room(struct Room *x, struct Room *y) {
 	//Connects Rooms x and y, doest not check
 	//Increments sizeing for both rooms
@@ -137,6 +144,10 @@ int is_same_room(struct Room x, struct Room y) {
 }
 
 
+/***************************************************************************
+ *Code to randomly choose rooms that meet the connection requirements and
+ *are not the same to connect together. Connects until the graph is full.
+ * **************************************************************************/
 void add_random_connection(struct Graph *g){
    struct Room *A = malloc(sizeof(struct Room));
    struct Room *B = malloc(sizeof(struct Room));
@@ -160,6 +171,9 @@ void add_random_connection(struct Graph *g){
 }
 
 
+/***************************************************************************
+ *Writes out all generated rooms to their designated files
+ * ************************************************************************/
 void write_to_file(struct Graph g){
    //Get pid to append to directory
    int pid = getpid();
@@ -211,6 +225,9 @@ void write_to_file(struct Graph g){
    }
 }
 
+/***************************************************************************
+ *Frees up hippity heap
+ * ************************************************************************/
 void free_connections(struct Graph *m){
    int i = 0;	
    for(i; i < 7; i++){
@@ -221,6 +238,7 @@ void free_connections(struct Graph *m){
    }
 }
 
+//Main driver
 int main() {
    const int SIZE = 7;
    struct Graph map;
@@ -232,6 +250,7 @@ int main() {
    //Sets up connections between rooms
    add_random_connection(&map);
 
+   //Write and clean up
    write_to_file(map);
    free_connections(&map);
 }

@@ -35,8 +35,11 @@ struct Game{
 };
 
 
-void set_name();
 
+/****************************************************************************
+ *Description:Concatanates a string to the directory path for the
+ *	newest folder created by the build program.
+ * **************************************************************************/
 void get_newest_directory(char *direct){
 	//Set DIR and stat() pointers
    	DIR *d = opendir(".");
@@ -81,6 +84,9 @@ void get_newest_directory(char *direct){
 *   all files in thep assed directory. The newest directory is delved
 *   into. All files with a _room suffix should be loaded and read into
 *   a struct. A pointer to said struct will be returned.
+*
+*   Due to strcpy being unrealiable with adding \n or whitespace I have
+*   done some jank to get my terminators in the rigth place.
 *
 ************************************************************************/
 struct Game* read_files(char *directory){
@@ -216,12 +222,16 @@ int _get_user_input(struct Game *g){
 
 }
 
+/**********************************************************************
+ *Thread process that will print time and write to file currentTime.txt
+ * ********************************************************************/
 void* get_time(){
 	FILE *f;
         time_t t;
 	struct tm *info;
 	char arg[100] = {'\0'};
 
+	//Get time
 	time(&t);
 	info = localtime(&t);
         
@@ -231,11 +241,21 @@ void* get_time(){
 	f = fopen("./currentTime.txt", "w+");
 	fputs(arg, f);
 	
+	//print
 	printf("%s\n", arg);
 	printf("\n");
 	fclose(f);
 }
 
+
+/***********************************************************************
+ *Description: Displays the user interface such as location and possible
+ *	rooms to traverse to. Calls _get_user_input to handle user input
+ *	and will return index to the traversal if valid or initiate time
+ *	Will always update Game.map to be current with traversal
+ *
+ *returns: 0 for continuation, -1 for time, or 1 to end
+ * **********************************************************************/
 int ui(struct Game *g){
    int time = 0;
    int index = g->map.current;	//Make life easier
@@ -303,6 +323,9 @@ int ui(struct Game *g){
 }
 
 
+/**************************************************************************
+ *Grabs index for the START_ROOM and returns it
+ * ***********************************************************************/
 void get_first_room(struct Game *g){
    int i = 0;	
    for(i; i < 7; i++){
@@ -313,6 +336,9 @@ void get_first_room(struct Game *g){
    }
 }
 
+/*************************************************************************
+ * Prints out the win message and the players path through the game
+ * **********************************************************************/
 void show_path(struct Game *g){
    int i = 0;
    printf("YOU HAVE FOUND THE END ROOM. CONGRATULATIONS!\n");
@@ -322,6 +348,9 @@ void show_path(struct Game *g){
    }
 }
 
+/**************************************************************************
+ *Free that sweet, sweet memory
+ * ***********************************************************************/
 void disconnect_graph(struct Game *g){
    int i = 0;	
    for(i; i < 7; i++){
@@ -334,6 +363,10 @@ void disconnect_graph(struct Game *g){
    free(g);
 }
 
+
+/*************************************************************************
+ *Where the magic happens
+ * **********************************************************************/
 int main(){
    FILE *f;
    struct stat tmp;
@@ -353,6 +386,7 @@ int main(){
 
 
    //Call ui untill in end room
+   //Logic will dictate what the user or game  determined for the next step
    do{
       logic = ui(g);
 
