@@ -34,6 +34,7 @@ struct Game{
 	struct Map map;
 };
 
+pthread_mutex_t lock;
 
 
 /****************************************************************************
@@ -226,11 +227,13 @@ int _get_user_input(struct Game *g){
  *Thread process that will print time and write to file currentTime.txt
  * ********************************************************************/
 void* get_time(){
+
 	FILE *f;
         time_t t;
 	struct tm *info;
 	char arg[100] = {'\0'};
 
+	pthread_mutex_lock(&lock);	//Lock with mutex
 	//Get time
 	time(&t);
 	info = localtime(&t);
@@ -245,6 +248,7 @@ void* get_time(){
 	printf("%s\n", arg);
 	printf("\n");
 	fclose(f);
+	pthread_mutex_unlock(&lock);
 }
 
 
@@ -368,6 +372,8 @@ void disconnect_graph(struct Game *g){
  *Where the magic happens
  * **********************************************************************/
 int main(){
+   pthread_mutex_init(&lock, NULL);
+   pthread_t thread;
    FILE *f;
    struct stat tmp;
    char directory[200];
@@ -392,9 +398,9 @@ int main(){
 
       if(logic == -1){
       	//Thread for time
-	pthread_t thread;
 	pthread_create(&thread, NULL, get_time, NULL);
 	pthread_join(thread,NULL);
+	
       }
 
    }while(logic <= 0);
